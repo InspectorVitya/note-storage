@@ -16,13 +16,13 @@ type Server struct {
 
 func New(port string, app *application.App) *Server {
 	mux := http.NewServeMux()
-
+	middleware := Logging(mux)
 	server := &Server{
 		HTTPServer: &http.Server{
 			Addr:         net.JoinHostPort("", port),
 			ReadTimeout:  5 * time.Second,
 			WriteTimeout: 5 * time.Second,
-			Handler:      mux,
+			Handler:      middleware,
 		},
 		router: mux,
 		App:    app,
