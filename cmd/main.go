@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+
 	storage := memory.New()
 	app := application.New(storage)
 	server := httpserver.New("8080", app)

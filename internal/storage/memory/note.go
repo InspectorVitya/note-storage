@@ -6,7 +6,6 @@ import (
 	"github.com/inspectorvitya/note-storage/internal/model"
 	"github.com/inspectorvitya/note-storage/internal/storage"
 	"sync"
-	"time"
 )
 
 type itemList struct {
@@ -30,11 +29,10 @@ func New() storage.NoteStorage {
 	}
 }
 
-func (l *list) AddNote(_ context.Context, note model.Note) error {
+func (l *list) AddNote(_ context.Context, note model.Note) (model.IDNote, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	note.IDNote = l.lastIndex
-	note.CreateTime = time.Now()
 	item := itemList{value: note}
 	if l.head == nil {
 		l.head = &item
@@ -52,7 +50,7 @@ func (l *list) AddNote(_ context.Context, note model.Note) error {
 	}
 	l.size++
 	l.lastIndex++
-	return nil
+	return note.IDNote, nil
 }
 func (l *list) DeleteNote(_ context.Context, id model.IDNote) error {
 	l.mu.Lock()

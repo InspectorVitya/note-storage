@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/inspectorvitya/note-storage/internal/model"
 	"github.com/inspectorvitya/note-storage/internal/storage"
+	"time"
 )
 
 type App struct {
@@ -43,5 +44,18 @@ func (app *App) DeleteNote(ctx context.Context, id model.IDNote) error {
 }
 
 func (app *App) CreateNote(ctx context.Context, note model.Note) error {
-	return app.noteStorage.AddNote(ctx, note)
+	id, err := app.noteStorage.AddNote(ctx, note)
+	if err != nil {
+		return err
+	}
+	if note.ExpireTime != "" {
+		expire, err := time.ParseDuration(note.ExpireTime)
+		if err != nil {
+			return err
+		}
+		time.AfterFunc(expire, func() {
+			_ = app.DeleteNote(ctx, id)
+		})
+	}
+	return err
 }
