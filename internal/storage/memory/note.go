@@ -2,7 +2,6 @@ package memory
 
 import (
 	"context"
-	"errors"
 	"github.com/inspectorvitya/note-storage/internal/model"
 	"github.com/inspectorvitya/note-storage/internal/storage"
 	"sync"
@@ -19,14 +18,11 @@ type list struct {
 	tail      *itemList
 	size      int
 	lastIndex model.IDNote
-	items     map[model.IDNote]*itemList
 	mu        sync.RWMutex
 }
 
 func New() storage.NoteStorage {
-	return &list{
-		items: make(map[model.IDNote]*itemList),
-	}
+	return &list{}
 }
 
 func (l *list) AddNote(_ context.Context, note model.Note) (model.IDNote, error) {
@@ -37,7 +33,6 @@ func (l *list) AddNote(_ context.Context, note model.Note) (model.IDNote, error)
 	if l.head == nil {
 		l.head = &item
 		l.tail = &item
-		l.items[note.IDNote] = &item
 	} else {
 		last := l.head
 		for last.next != nil {
@@ -46,7 +41,6 @@ func (l *list) AddNote(_ context.Context, note model.Note) (model.IDNote, error)
 		last.next = &item
 		item.prev = last
 		l.tail = &item
-		l.items[note.IDNote] = &item
 	}
 	l.size++
 	l.lastIndex++
@@ -55,15 +49,14 @@ func (l *list) AddNote(_ context.Context, note model.Note) (model.IDNote, error)
 func (l *list) DeleteNote(_ context.Context, id model.IDNote) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	note, ok := l.items[id]
-	if !ok {
-		return errors.New("not exist note")
+	note, err := l.findById(id)
+	if err != nil {
+		return err
 	}
 	if l.size == 1 {
 		l.tail = nil
 		l.head = nil
 		l.size--
-		delete(l.items, id)
 		return nil
 	}
 	if note.prev != nil {
@@ -78,7 +71,6 @@ func (l *list) DeleteNote(_ context.Context, id model.IDNote) error {
 		note.prev.next = nil
 		l.tail = note.prev
 	}
-	delete(l.items, id)
 	l.size--
 
 	return nil
@@ -87,7 +79,7 @@ func (l *list) GetAll(_ context.Context) ([]model.Note, error) {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 	if l.size == 0 {
-		return nil, errors.New("empty list")
+		return nil, model.ErrEmptyList
 	}
 	result := make([]model.Note, l.size)
 	note := l.tail
@@ -104,7 +96,7 @@ func (l *list) GetFirst(_ context.Context) (model.Note, error) {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 	if l.size == 0 {
-		return model.Note{}, errors.New("empty list")
+		return model.Note{}, model.ErrEmptyList
 	}
 	return l.head.value, nil
 }
@@ -112,7 +104,20 @@ func (l *list) GetLast(_ context.Context) (model.Note, error) {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 	if l.size == 0 {
-		return model.Note{}, errors.New("empty list")
+		return model.Note{}, model.ErrEmptyList
 	}
 	return l.tail.value, nil
+}
+
+func (l *list) findById(id model.IDNote) (*itemList, error) {
+	item := l.head
+	for {
+		if item != nil && item.value.IDNote == id {
+			return item, nil
+		}
+		if item.next == nil {
+			return nil, model.ErrNotExistNote
+		}
+		item = item.next
+	}
 }

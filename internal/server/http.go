@@ -33,7 +33,7 @@ func New(port string, app *application.App) *Server {
 func (s *Server) Start() error {
 	s.router.HandleFunc("/", s.Main)
 	s.router.HandleFunc("/last", s.GetLast)
-	s.router.HandleFunc("/first", s.GetFirs)
+	s.router.HandleFunc("/first", s.GetFirst)
 	return s.HTTPServer.ListenAndServe()
 }
 

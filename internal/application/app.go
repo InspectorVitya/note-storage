@@ -48,6 +48,7 @@ func (app *App) CreateNote(ctx context.Context, note model.Note) error {
 	if err != nil {
 		return err
 	}
+
 	if note.ExpireTime != "" {
 		expire, err := time.ParseDuration(note.ExpireTime)
 		if err != nil {
