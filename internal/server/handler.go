@@ -17,7 +17,7 @@ func (s *Server) Main(w http.ResponseWriter, r *http.Request) {
 	case http.MethodDelete:
 		s.DeleteNote(w, r)
 	default:
-		w.WriteHeader(404)
+		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
 
 }
@@ -84,10 +84,10 @@ func (s *Server) GetLast(w http.ResponseWriter, r *http.Request) {
 		err = json.NewEncoder(w).Encode(note)
 		if err != nil {
 			newErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
 		}
+		return
 	}
-	w.WriteHeader(404)
+	w.WriteHeader(http.StatusMethodNotAllowed)
 }
 func (s *Server) GetFirst(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
@@ -104,5 +104,5 @@ func (s *Server) GetFirst(w http.ResponseWriter, r *http.Request) {
 		_ = json.NewEncoder(w).Encode(note)
 		return
 	}
-	w.WriteHeader(404)
+	w.WriteHeader(http.StatusNotFound)
 }
