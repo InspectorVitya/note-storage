@@ -3,7 +3,6 @@ package memory
 import (
 	"context"
 	"github.com/inspectorvitya/note-storage/internal/model"
-	"github.com/inspectorvitya/note-storage/internal/storage"
 	"sync"
 )
 
@@ -21,7 +20,7 @@ type list struct {
 	mu        sync.RWMutex
 }
 
-func New() storage.NoteStorage {
+func New() *list {
 	return &list{}
 }
 
