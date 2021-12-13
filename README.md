@@ -90,7 +90,7 @@ Content-Length: 39
 ## Get last note
 ### Request
 
-`GET /first`
+`GET /last`
 ```
 curl --location --request GET 'localhost:8080/last' \
 --header 'login: admin'
